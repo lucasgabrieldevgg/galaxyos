@@ -2,11 +2,12 @@
 
 Protótipo e base de projeto para um **channel Roku** que funciona como ambiente de entretenimento próprio — launcher, games, web hub e connect — começando pela tela inicial.
 
-Este repo reúne as três primeiras peças do plano:
+Este repo reúne as quatro peças do plano:
 
-1. **`prototype/`** — a versão teste web da Home (v0.3), navegável por setas como um controle real, bilíngue PT/EN, estática (HTML/CSS/JS puro, sem build).
-2. **`skills/`** — as 4 skills do autor (projects · design · security · theskill/craftsmanship) **adaptadas para a área Roku**, que passam a guiar o desenvolvimento do channel.
-3. **`docs/`** — a pesquisa verificada nas fontes oficiais da Roku (o que muda decisões de arquitetura) e os screenshots dos estados do protótipo.
+1. **`prototype/`** — a versão teste web da Home (v0.3), navegável por setas como um controle real, bilíngue PT/EN, estática (HTML/CSS/JS puro, sem build). Também serve o **feed do canal** (`prototype/feeds/modules.json`).
+2. **`roku/`** — **Fase 1: o channel de verdade** em BrightScript + SceneGraph (Home Deep Space, feed do Hub v0, PT/EN, rungs 1 e 3 verificados).
+3. **`skills/`** — as 4 skills do autor (projects · design · security · theskill/craftsmanship) **adaptadas para a área Roku**, que passam a guiar o desenvolvimento do channel.
+4. **`docs/` + `brain/`** — a pesquisa verificada nas fontes oficiais da Roku e a memória do projeto (decisões ADR, device-info, tasks).
 
 ---
 
@@ -30,6 +31,27 @@ O workflow incluído (`.github/workflows/pages.yml`) publica a pasta `prototype/
 3. A cada push na `main`, o protótipo entra no ar em `https://SEU-USUARIO.github.io/galaxyos/`.
 
 **Vercel** (alternativa igualmente gratuita): importe o repo, defina **Root Directory = `prototype`** — pronto, sem build. Plano **Hobby** verificado em 24/10/2026 na página oficial de preços: **$0/mês** para uso pessoal/não-comercial, **100 GB de tráfego/mês**, 1M de requests, domínio próprio suportado. O GitHub Pages segue como padrão por dispensar qualquer configuração; nota para o futuro: **WebSocket persistente (Connect) não roda** no serverless da Vercel — nessa fase, avaliar Render/Railway/Fly ou um VPS.
+
+---
+
+## Fase 1 — o canal Roku (novo)
+
+O **channel em BrightScript + SceneGraph** que recria a Home Deep Space na TV, com a pesquisa dos últimos dias aplicada (tamanhos de arte medidos no sample oficial, safe zones FHD, protocolo `onKeyEvent`, Task + `roUrlTransfer` fora do render thread):
+
+- **Home Deep Space**: fundo nebulosa (mesma paleta do protótipo), saudação por hora, relógio (24h PT / 12h EN), card de rede, **rail de 4 módulos** com foco em ring ciano + escala, painel de detalhe e hintbar — tudo ≥ 24px e dentro do action-safe.
+- **Feed do “Hub v0”**: o canal busca `feeds/modules.json` aqui do Pages, **valida tudo** (whitelist de ids, limites de tamanho, tipos — fail-closed) e cai num **fallback offline** embutido se a rede falhar.
+- **Idioma PT/EN** trocado com a tecla `*` (options) e persistido no registro da TV.
+- **Verificação**: rung 1 (`bsc` compila com zero erros) e rung 3-lite (contrato do feed: 16/16 fixtures hostis) — **rung 4/5 (smoke na AOC 43S5155) é o próximo passo**, guia completo em `docs/fase1-tv.md`.
+
+```bash
+cd roku
+npm install          # brighterscript 0.73.8 + roku-deploy 3.18.4 (pinados)
+npm run compile      # bsc — zero erros
+npm test             # contrato do feed (16 fixtures + JSON publicado)
+cd src && zip -r ../galaxyos-channel.zip manifest source components images   # zip de sideload
+```
+
+Zip pronto pra sideload: **`galaxyos-roku-channel-v0.1.zip`** (228 KB, muito abaixo do orçamento de package).
 
 ---
 
@@ -58,26 +80,35 @@ O que a pesquisa nas fontes oficiais já travou de decisão:
 
 ## Roadmap
 
-- **Fase 1** — GalaxyOS Core real: channel em BrightScript + SceneGraph com esta Home (relógio, atalhos, rede via `roDeviceInfo`), sideload na AOC 43S5155 e smoke test.
-- **Fase 2** — GalaxyOS Hub: API mínima (Vercel) + feed JSON consumido pelo channel.
-- **Fase 3** — Games: catálogo + primeiro jogo-em-dados.
-- **Fase 4** — Connect: pairing pelo Hub, companion **Linux Mint XFCE** (systemd + Chromium headless).
+- **Fase 1** — ✅ scaffold do channel (Home, feed Hub v0, PT/EN) · ⬜ smoke na TV: **`docs/fase1-tv.md`**.
+- **Fase 2** — GalaxyOS Hub: API mínima (Vercel) + módulo Jogos (RowList virtualizado, jogos como dados).
+- **Fase 3** — Web Hub: adaptadores JSON → UI nativa.
+- **Fase 4** — Connect: pairing pelo Hub (WebSocket — host dedicado), companion **Linux Mint XFCE** (systemd + Chromium headless).
+- **29/10/2026** — avaliar o beta do **RSG 2.0** (fila #1 do research).
 
 ## Estrutura
 
 ```
 galaxyos/
-├── .github/workflows/pages.yml   # deploy do protótipo no GitHub Pages
-├── prototype/                    # versão teste web (sem build)
+├── .github/workflows/pages.yml   # deploy do protótipo + feeds no GitHub Pages
+├── prototype/                    # versão teste web (sem build) + feeds/
 │   ├── index.html
 │   ├── css/style.css
-│   └── js/app.js
-├── skills/
-│   ├── roku-projects/SKILL.md
-│   ├── roku-design/SKILL.md
-│   ├── roku-security/SKILL.md
-│   └── roku-craft/SKILL.md
+│   ├── js/app.js
+│   └── feeds/modules.json         # feed do canal (Hub v0)
+├── roku/                          # Fase 1 — o channel de verdade
+│   ├── src/
+│   │   ├── manifest               # ui_resolutions=fhd, artes oficiais
+│   │   ├── source/                # Main.brs · config.brs · feed-validate.brs
+│   │   ├── components/            # HomeScene · ModuleTile · FeedTask
+│   │   └── images/                 # nebulosa, splashs e posters (specs medidas)
+│   ├── tests/feed-contract.js     # contrato do feed (fixtures hostis)
+│   ├── package.json · bsconfig.json
+├── brain/                         # memória: context · device-info · tasks · decisions/
+├── skills/                         # roku-projects · roku-design · roku-security · roku-craft
 └── docs/
-    ├── research-roku.md          # fatos verificados + fila de verificação
-    └── screenshots/              # estados validados do protótipo
+    ├── research-roku.md           # fatos verificados + fila (agora com §8 Fase 1)
+    ├── research/fase1-notes.md    # notas da coleta (eixos + ledger)
+    ├── fase1-tv.md                # guia de sideload e smoke na AOC 43S5155
+    └── screenshots/                # estados validados do protótipo
 ```

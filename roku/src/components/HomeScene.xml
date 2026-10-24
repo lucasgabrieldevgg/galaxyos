@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="HomeScene" extends="Scene">
+    <children>
+        <!-- fundo Deep Space (nebulosa estática embutida) -->
+        <Poster id="bgPoster"
+            size="[1920, 1080]" loadDisplayMode="scaleToFill"
+            uri="pkg:/images/bg-nebula_fhd.jpg" />
+
+        <!-- topo: marca + relógio + rede -->
+        <Label id="logoLabel"
+            translation="[96, 52]" size="[600, 56]"
+            font="font:LargeSystemFont" color="0xEDF1F9FF" text="GalaxyOS" />
+        <Label id="clockLabel"
+            translation="[1424, 54]" size="[400, 50]" horizAlign="right"
+            font="font:LargeSystemFont" color="0xEDF1F9FF" />
+        <Label id="wifiLabel"
+            translation="[1424, 106]" size="[400, 32]" horizAlign="right"
+            font="font:SmallSystemFont" color="0x98A3BEFF" />
+
+        <!-- hero: saudação + card de rede -->
+        <Label id="greetingLabel"
+            translation="[96, 208]" size="[1100, 96]"
+            font="font:LargeSystemFont" color="0xEDF1F9FF" />
+        <Label id="heroSubLabel"
+            translation="[96, 312]" size="[1100, 44]"
+            font="font:MediumSystemFont" color="0x98A3BEFF" />
+        <Rectangle id="netcardRect"
+            translation="[1236, 208]" size="[588, 136]" color="0x0D1221E6" />
+        <Label id="netcardName"
+            translation="[1268, 226]" size="[520, 44]"
+            font="font:MediumSystemFont" color="0xEDF1F9FF" />
+        <Rectangle id="netcardDot"
+            translation="[1268, 294]" size="[14, 14]" color="0x4ADE80FF" />
+        <Label id="netcardStatus"
+            translation="[1294, 284]" size="[500, 36]"
+            font="font:SmallSystemFont" color="0x4ADE80FF" />
+
+        <!-- seção + estado do feed -->
+        <Label id="sectionLabel"
+            translation="[96, 470]" size="[400, 36]"
+            font="font:SmallSystemFont" color="0x98A3BEFF" />
+        <Label id="offlineLabel"
+            translation="[640, 470]" size="[1000, 36]" horizAlign="right"
+            font="font:SmallSystemFont" color="0xFBC75CFF" visible="false" />
+
+        <!-- rail dos módulos (tiles criados em BrightScript) -->
+        <Group id="railGroup" translation="[0, 520]" />
+
+        <!-- painel de detalhe do módulo em foco -->
+        <Label id="detailTitle"
+            translation="[96, 800]" size="[1500, 60]"
+            font="font:LargeSystemFont" color="0x6EE7FFFF" />
+        <Label id="detailDesc"
+            translation="[96, 864]" size="[1500, 44]"
+            font="font:MediumSystemFont" color="0xEDF1F9FF" />
+        <Label id="detailStatus"
+            translation="[96, 916]" size="[1500, 36]"
+            font="font:SmallSystemFont" color="0x98A3BEFF" />
+
+        <!-- hintbar -->
+        <Label id="hintLabel"
+            translation="[96, 1012]" size="[1728, 36]"
+            font="font:SmallSystemFont" color="0x98A3BEFF" />
+    </children>
+
+    <script type="text/brightscript" uri="pkg:/source/config.brs" />
+    <script type="text/brightscript" uri="HomeScene.brs" />
+</component>

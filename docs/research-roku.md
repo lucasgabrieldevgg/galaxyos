@@ -106,3 +106,41 @@ Implicação direta: o GalaxyOS channel precisa de **orçamento de memória aper
 > - ✅ Atende 100% o protótipo estático e a Fase 2 (Hub leve: API routes + feed JSON).
 > - ⚠️ **WebSocket persistente não roda no serverless da Vercel** → o relay do Connect (fase 4) pedirá host dedicado (Render/Railway/Fly.io free tier ou VPS barato).
 > - ⚠️ Uso comercial do GalaxyOS (se algum dia monetizar) pede plano **Pro** ($20/usuário/mês).
+
+---
+
+## 8. Fase 1 — coleta e scaffold (24/10/2026)
+
+> Método: skill `research` (frame → plan → gather → verify → synthesize). Notas por eixo + ledger em `docs/research/fase1-notes.md`. Fontes primárias (docs oficiais + sample `rokudev/hello-world` medido + npm registry), acessadas 24/10/2026.
+
+### 8.1 O que a coleta confirmou (e onde está aplicado)
+
+| Fato verificado | Onde entrou no canal |
+| --- | --- |
+| Sequência Home×3 · Up×2 · R · L · R · L · R ativa o dev mode; login `rokudev` + senha; upload .zip | guia `docs/fase1-tv.md` |
+| Só 1 app sideloadado por vez; splashfs = upload mais rápido | guia + tasks (rung 4/5) |
+| Poster FHD 540×405 / HD 290×218 / SD 214×144; splash 1920×1080 / 1280×720 / 720×480 (medidos no sample oficial) | `roku/src/images/*` (gerado) |
+| Manifest: title/versões/ícones obrigatórios; `ui_resolutions=fhd`; `splash_color`, `splash_min_time` | `roku/src/manifest` |
+| Safe zones FHD: ação 1726×970 @ (96,53) | layout da Home (margens 96/54) |
+| `onKeyEvent` com keys `left/right/OK/options`; grids tratam setas sozinhas → rail custom por ADR-0004 | `HomeScene.brs` |
+| Task + `roUrlTransfer` + `observeField` + `control="RUN"` (nunca fetch no render thread) | `FeedTask.brs/.xml` |
+| Tooling ativo: brighterscript 0.73.8 (22/10/2026) · roku-deploy 3.18.4 · `bslint` npm de procedência duvidosa (chjj) — **descartado**, lint = diagnósticos do `bsc` | `roku/package.json` pinado |
+| `run` é palavra reservada em componente (BS1045) — Task functionName não pode se chamar `run` | corrigido: `fetchModules` |
+
+### 8.2 O que foi construído (rungs verificados)
+
+- **Canal completo em `roku/`**: Home Deep Space (saudação por hora, relógio 24h/12h, card de rede, rail de 4 módulos com ring+escala de foco, painel de detalhe, hintbar), feed do Hub v0 com validação + fallback offline, idioma PT/EN via `*` persistido no registro.
+- **Rung 1** ✅ — `bsc` compila com zero erros/warnings.
+- **Rung 3-lite** ✅ — contrato do feed: 16/16 fixtures (hostis inclusos) + JSON publicado válido (`roku/tests/feed-contract.js`, constantes extraídas dos próprios .brs).
+- **Rung 4/5** ⬜ — smoke e adversarial na AOC 43S5155 (passo-a-passo em `docs/fase1-tv.md`). Screenshot do plug-in sairá 720p (device não-4K).
+
+### 8.3 Gaps declarados (fila §6 atualizada)
+
+| # | Pergunta | Quando |
+| --- | --- | --- |
+| 1 | RSG 2.0 beta: docs, samples, coexistência com BrightScript | **29/10/2026** |
+| 3 | ifAppManager: lista de métodos (channel→channel) — tudo indica que só informativo/Close | antes de desenhar launcher de terceiros (Fase 2+) |
+| 5 | Automated App Testing (WebDriver/RobotFW/JS lib) + Cloud Emulator: capacidades reais | wire de CI-lite da Fase 2 |
+| 7 | `bslint` rokucommunity: pacote correto e valor sobre `bsc` | quando o lint dos diagnósticos faltar |
+| 8 | Fechamento do processo `bsc` após diagnóstico (node 24): investigar `--no-color`/issue upstream; hoje rodamos com kill por PID | primeiro `npm run compile` no Mint do Lucas |
+

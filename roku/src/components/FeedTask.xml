@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="FeedTask" extends="Task">
+    <interface>
+        <!-- URI do feed (entrada) -->
+        <field id="uri" type="string" />
+        <!-- Resultado: { ok: bool, modules: array|invalid, error: string } -->
+        <field id="content" type="assocarray" alwaysNotify="true" />
+    </interface>
+    <!-- Validação pura importada de source/ (mesma função testada) -->
+    <script type="text/brightscript" uri="pkg:/source/config.brs" />
+    <script type="text/brightscript" uri="pkg:/source/feed-validate.brs" />
+    <script type="text/brightscript" uri="FeedTask.brs" />
+</component>

@@ -1,0 +1,41 @@
+{
+    "meta": {
+        "name": "GalaxyOS Home",
+        "version": 1,
+        "lang": "pt,en"
+    },
+    "modules": [
+        {
+            "id": "games",
+            "title_pt": "Jogos",
+            "title_en": "Games",
+            "desc_pt": "Biblioteca, minigames e recordes.",
+            "desc_en": "Library, mini-games and high scores.",
+            "badge": "soon"
+        },
+        {
+            "id": "web",
+            "title_pt": "Web Hub",
+            "title_en": "Web Hub",
+            "desc_pt": "Conteúdo e serviços via GalaxyOS Hub.",
+            "desc_en": "Content and services via the GalaxyOS Hub.",
+            "badge": "soon"
+        },
+        {
+            "id": "connect",
+            "title_pt": "Connect",
+            "title_en": "Connect",
+            "desc_pt": "PC na TV, celular no controle.",
+            "desc_en": "PC on the TV, phone as the remote.",
+            "badge": "soon"
+        },
+        {
+            "id": "settings",
+            "title_pt": "Configurações",
+            "title_en": "Settings",
+            "desc_pt": "Idioma, aparência e informações.",
+            "desc_en": "Language, appearance and info.",
+            "badge": "now"
+        }
+    ]
+}

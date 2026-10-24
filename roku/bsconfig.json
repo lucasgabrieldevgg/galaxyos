@@ -1,0 +1,12 @@
+{
+    "rootDir": "src",
+    "outDir": "out",
+    "files": [
+        "manifest",
+        "source/**/*",
+        "components/**/*",
+        "images/**/*"
+    ],
+    "createPackage": false,
+    "emitDefinitions": false
+}

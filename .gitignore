@@ -8,5 +8,8 @@ Thumbs.db
 .idea/
 *.swp
 
-# node (se um dia entrar tooling)
+# node (tooling brighterscript/roku-deploy)
 node_modules/
+
+# saída de build do canal
+roku/out/

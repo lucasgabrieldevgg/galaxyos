@@ -1,0 +1,16 @@
+{
+    "name": "galaxyos-roku",
+    "version": "0.1.0",
+    "private": true,
+    "description": "GalaxyOS — canal Roku (Fase 1: Home Deep Space)",
+    "scripts": {
+        "compile": "bsc",
+        "test": "node tests/feed-contract.js",
+        "package": "roku-deploy",
+        "deploy": "roku-deploy --push"
+    },
+    "devDependencies": {
+        "brighterscript": "0.73.8",
+        "roku-deploy": "3.18.4"
+    }
+}

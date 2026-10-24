@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="ModuleTile" extends="Group">
+    <interface>
+        <field id="moduleId" type="string" />
+        <field id="num" type="string" onChange="onNumChanged" />
+        <field id="title" type="string" onChange="onTitleChanged" />
+        <field id="desc" type="string" onChange="onDescChanged" />
+        <field id="badgeText" type="string" onChange="onBadgeChanged" />
+        <field id="badgeKind" type="string" onChange="onBadgeChanged" />
+        <field id="focused" type="boolean" onChange="onFocusedChanged" />
+    </interface>
+
+    <children>
+        <!-- ring de foco 4px atrás do corpo -->
+        <Rectangle id="focusRing"
+            translation="[-4, -4]" size="[368, 238]"
+            color="0x6EE7FFFF" visible="false" />
+        <Rectangle id="bgRect"
+            size="[360, 230]" color="0x0D1221E6" />
+        <!-- numeração do módulo (neutra em idioma) -->
+        <Rectangle id="numRect"
+            translation="[28, 28]" size="[72, 72]" color="0x6EE7FF21" />
+        <Label id="numLabel"
+            translation="[28, 38]" size="[72, 48]" horizAlign="center"
+            font="font:SmallSystemFont" color="0x6EE7FFFF" />
+        <!-- badge de status -->
+        <Rectangle id="badgeRect"
+            translation="[224, 28]" size="[112, 36]" color="0x8B7CFF26" />
+        <Label id="badgeLabel"
+            translation="[224, 28]" size="[112, 36]" horizAlign="center" vertAlign="center"
+            font="font:SmallSystemFont" color="0x8B7CFFFF" />
+        <!-- textos -->
+        <Label id="titleLabel"
+            translation="[28, 118]" size="[304, 48]" font="font:MediumSystemFont" color="0xEDF1F9FF" />
+        <Label id="descLabel"
+            translation="[28, 170]" size="[304, 48]" wrap="true"
+            font="font:SmallSystemFont" color="0x98A3BEFF" />
+    </children>
+
+    <script type="text/brightscript" uri="ModuleTile.brs" />
+</component>
