@@ -26,7 +26,7 @@ end function
 
 function gxConfig() as object
     return {
-        version: "Fase 1 · v0.1"
+        version: "0.2"
         feedUrl: "https://lucasgabrieldevgg.github.io/galaxyos/feeds/modules.json"
         registrySection: "galaxyos"
         maxModules: 8
@@ -34,6 +34,8 @@ function gxConfig() as object
         maxDescLen: 160
         feedTimeoutMs: 20000
         clockTickSeconds: 30
+        feedRefreshSeconds: 900
+        toastSeconds: 4
     }
 end function
 
@@ -52,6 +54,12 @@ function gxStrings() as object
             offline: "Sem conexão — exibindo módulos locais"
             statusSoon: "Módulo previsto para a próxima fase."
             statusLangSet: "Idioma: Português"
+            statusChecking: "Buscando atualizações..."
+            statusUpToDate: "Você está na versão mais recente."
+            statusContentUpdated: "Conteúdo atualizado."
+            statusCheckFailed: "Hub indisponível - tento de novo sozinho."
+            toastContentUpdated: "Conteúdo atualizado"
+            infoContent: "Conteúdo"
             clockSuffixAm: ""
             clock24h: true
         }
@@ -67,6 +75,12 @@ function gxStrings() as object
             offline: "No connection — showing local modules"
             statusSoon: "Module planned for the next phase."
             statusLangSet: "Language: English"
+            statusChecking: "Checking for updates..."
+            statusUpToDate: "You are up to date."
+            statusContentUpdated: "Content updated."
+            statusCheckFailed: "Hub unreachable - I will retry on my own."
+            toastContentUpdated: "Content updated"
+            infoContent: "Content"
             clockSuffixAm: ""
             clock24h: false
         }

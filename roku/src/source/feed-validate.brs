@@ -53,3 +53,39 @@ function validateModules(json as dynamic) as dynamic
 
     return out
 end function
+
+'*************************************************************
+'** Meta do feed (ADR-0006 — atualização de conteúdo).
+'** Informativo: NUNCA rejeita o feed, só sanitiza o que vai
+'** para a UI (versão do conteúdo e data da última edição).
+'** Pura e testável no host (tests/feed-contract.js).
+'*************************************************************
+
+function validateMeta(json as dynamic) as object
+    meta = { version: 0, updated: "" }
+    if json = invalid then return meta
+    if type(json) <> "roAssociativeArray" then return meta
+
+    raw = json.Lookup("meta")
+    if raw = invalid then return meta
+    if type(raw) <> "roAssociativeArray" then return meta
+
+    v = raw.Lookup("version")
+    if v <> invalid
+        tv = type(v)
+        if tv = "Integer" or tv = "LongInteger"
+            if v > 0 and v <= 99999
+                meta.version = v
+            end if
+        end if
+    end if
+
+    u = raw.Lookup("updated")
+    if type(u) = "String"
+        if Len(u) > 0 and Len(u) <= 24
+            meta.updated = u
+        end if
+    end if
+
+    return meta
+end function

@@ -61,6 +61,14 @@
         <Label id="hintLabel"
             translation="[96, 1012]" size="[1728, 36]"
             font="font:SmallSystemFont" color="0x98A3BEFF" />
+
+        <!-- toast: aviso rápido (ex.: conteúdo atualizado) -->
+        <Group id="toastGroup" translation="[660, 956]" visible="false">
+            <Rectangle id="toastRect" size="[600, 52]" color="0x0D1221F2" />
+            <Rectangle id="toastAccent" size="[6, 52]" color="0x6EE7FFFF" />
+            <Label id="toastLabel" translation="[24, 6]" size="[552, 40]"
+                font="font:MediumSystemFont" color="0x6EE7FFFF" horizAlign="center" />
+        </Group>
     </children>
 
     <script type="text/brightscript" uri="pkg:/source/config.brs" />

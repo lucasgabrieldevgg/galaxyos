@@ -4,6 +4,8 @@
 '** card de rede, rail de módulos (foco gerenciado pela cena
 '** — ADR-0004) e painel de detalhe. Feed via Task (fallback
 '** offline embutido). Idioma PT/EN via * (registro).
+'** Atualização de conteúdo (ADR-0006): busca ao abrir,
+'** re-checa a cada 15 min e OK em Configurações busca agora.
 '*************************************************************
 
 sub init()
@@ -13,6 +15,12 @@ sub init()
     m.lang = loadLang()
     m.modules = gxFallbackModules()
     m.focusIndex = 0
+
+    ' estado do conteúdo (atualização OTA — ADR-0006)
+    m.contentVersion = 0
+    m.contentUpdated = ""
+    m.hasContent = false
+    m.checkingUpdates = false
 
     m.clockLabel = m.top.findNode("clockLabel")
     m.wifiLabel = m.top.findNode("wifiLabel")
@@ -27,6 +35,9 @@ sub init()
     m.detailDesc = m.top.findNode("detailDesc")
     m.detailStatus = m.top.findNode("detailStatus")
     m.hintLabel = m.top.findNode("hintLabel")
+    m.logoLabel = m.top.findNode("logoLabel")
+    m.toastGroup = m.top.findNode("toastGroup")
+    m.toastLabel = m.top.findNode("toastLabel")
 
     buildRail()
     renderChrome()
@@ -47,6 +58,7 @@ sub init()
     m.detailDesc.font.size = 28
     m.detailStatus.font.size = 26
     m.hintLabel.font.size = 24
+    m.toastLabel.font.size = 28
 
     ' relógio: tick a cada 30s
     m.clockTimer = CreateObject("roSGNode", "Timer")
@@ -54,6 +66,18 @@ sub init()
     m.clockTimer.repeat = true
     m.clockTimer.observeField("fire", "onClockTick")
     m.clockTimer.control = "start"
+
+    ' toast: esconde sozinho depois de alguns segundos
+    m.toastTimer = CreateObject("roSGNode", "Timer")
+    m.toastTimer.duration = m.cfg.toastSeconds
+    m.toastTimer.observeField("fire", "onToastTick")
+
+    ' conteúdo: re-checa o feed periodicamente (atualiza sem reinstalar)
+    m.feedTimer = CreateObject("roSGNode", "Timer")
+    m.feedTimer.duration = m.cfg.feedRefreshSeconds
+    m.feedTimer.repeat = true
+    m.feedTimer.observeField("fire", "onFeedRefresh")
+    m.feedTimer.control = "start"
 
     startFeed()
 
@@ -93,7 +117,11 @@ sub updateFocus()
     entry = m.modules[m.focusIndex]
     m.detailTitle.text = pick(entry, "title")
     m.detailDesc.text = pick(entry, "desc")
-    m.detailStatus.text = ""
+    if entry.id = "settings"
+        m.detailStatus.text = settingsInfoLine()
+    else
+        m.detailStatus.text = ""
+    end if
 end sub
 
 '──────────────────────── chrome/i18n ────────────────────────
@@ -128,8 +156,10 @@ sub activateModule()
     entry = m.modules[m.focusIndex]
     s = currentStrings()
     if entry.id = "settings"
-        toggleLanguage()
-        m.detailStatus.text = s.statusLangSet
+        ' OK em Configurações = buscar atualização de conteúdo agora
+        m.checkingUpdates = true
+        m.detailStatus.text = s.statusChecking
+        startFeed()
     else
         m.detailStatus.text = s.statusSoon
     end if
@@ -181,35 +211,92 @@ function currentHour() as integer
     return d.GetHours()
 end function
 
-'──────────────────────── feed ────────────────────────
+'──────────────────────── feed (conteúdo OTA) ────────────────────────
 
 sub startFeed()
-    m.feedTask = CreateObject("roSGNode", "FeedTask")
-    m.feedTask.uri = m.cfg.feedUrl
-    m.feedTask.observeField("content", "onFeedContent")
+    if m.feedTask = invalid
+        m.feedTask = CreateObject("roSGNode", "FeedTask")
+        m.feedTask.observeField("content", "onFeedContent")
+    end if
+    ' cache-bust: o GitHub Pages cacheia por 10 min
+    m.feedTask.uri = m.cfg.feedUrl + "?t=" + stri(CreateObject("roDateTime").AsSeconds()).trim()
     m.feedTask.control = "RUN"
-    print "[Home] feed task started: " + m.cfg.feedUrl
+    print "[Home] feed fetch: " + m.feedTask.uri
+end sub
+
+sub onFeedRefresh()
+    print "[Feed] auto refresh"
+    startFeed()
+end sub
+
+sub applyModules(modules as object, meta as object)
+    m.modules = modules
+    if meta <> invalid
+        m.contentVersion = meta.version
+        m.contentUpdated = meta.updated
+    end if
+    ' clamp: o feed pode vir com menos módulos do que o foco atual
+    if m.focusIndex >= m.modules.Count() then m.focusIndex = m.modules.Count() - 1
+    if m.focusIndex < 0 then m.focusIndex = 0
+    buildRail()
+    updateFocus()
 end sub
 
 sub onFeedContent()
     content = m.feedTask.content
-    if content <> invalid and content.ok
-        print "[Feed] ok — " + stri(content.modules.Count()).trim() + " modules"
-        m.modules = content.modules
+    if content = invalid then content = { ok: false, error: "invalid result" }
+    s = currentStrings()
+
+    if content.ok
+        meta = content.meta
+        if meta = invalid then meta = { version: 0, updated: "" }
+        print "[Feed] ok — " + stri(content.modules.Count()).trim() + " modules (v" + stri(meta.version).trim() + ")"
         m.offlineLabel.visible = false
-        buildRail()
-        updateFocus()
-    else
-        if content = invalid
-            reason = "invalid result"
+
+        if m.hasContent and meta.version > m.contentVersion
+            applyModules(content.modules, meta)
+            showToast(s.toastContentUpdated)
+            if m.checkingUpdates then m.detailStatus.text = s.statusContentUpdated
+            print "[Feed] conteúdo atualizado para v" + stri(meta.version).trim()
         else
-            reason = content.error
+            applyModules(content.modules, meta)
+            if m.checkingUpdates then m.detailStatus.text = s.statusUpToDate
         end if
-        print "[Feed] failed: " + reason + " — keeping local modules"
-        m.offlineLabel.visible = true
-        m.offlineLabel.text = currentStrings().offline
+
+        m.hasContent = true
+    else
+        print "[Feed] failed: " + content.error + " — keeping current modules"
+        if not m.hasContent
+            m.offlineLabel.visible = true
+            m.offlineLabel.text = s.offline
+        end if
+        if m.checkingUpdates then m.detailStatus.text = s.statusCheckFailed
     end if
+
+    m.checkingUpdates = false
 end sub
+
+'──────────────────────── toast ────────────────────────
+
+sub showToast(msg as string)
+    m.toastLabel.text = msg
+    m.toastGroup.visible = true
+    m.toastTimer.duration = m.cfg.toastSeconds
+    m.toastTimer.control = "start"
+end sub
+
+sub onToastTick()
+    m.toastGroup.visible = false
+end sub
+
+function settingsInfoLine() as string
+    s = currentStrings()
+    line = "GalaxyOS " + m.cfg.version + " · " + s.infoContent + " v" + stri(m.contentVersion).trim()
+    if m.contentUpdated <> ""
+        line = line + " · " + m.contentUpdated
+    end if
+    return line
+end function
 
 '──────────────────────── helpers ────────────────────────
 

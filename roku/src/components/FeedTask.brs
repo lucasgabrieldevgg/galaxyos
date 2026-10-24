@@ -10,7 +10,7 @@ end sub
 
 sub fetchModules()
     cfg = gxConfig()
-    result = { ok: false, modules: invalid, error: "unknown" }
+    result = { ok: false, modules: invalid, meta: { version: 0, updated: "" }, error: "unknown" }
 
     uri = m.top.uri
     if uri = invalid or Len(uri) = 0
@@ -75,6 +75,7 @@ sub fetchModules()
 
     result.ok = true
     result.modules = modules
+    result.meta = validateMeta(json)
     result.error = ""
     m.top.content = result
 end sub

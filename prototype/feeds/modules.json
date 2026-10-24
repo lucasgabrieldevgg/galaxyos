@@ -1,7 +1,8 @@
 {
     "meta": {
         "name": "GalaxyOS Home",
-        "version": 1,
+        "version": 2,
+        "updated": "2026-10-24",
         "lang": "pt,en"
     },
     "modules": [

@@ -5,7 +5,7 @@ Protótipo e base de projeto para um **channel Roku** que funciona como ambiente
 Este repo reúne as quatro peças do plano:
 
 1. **`prototype/`** — a versão teste web da Home (v0.3), navegável por setas como um controle real, bilíngue PT/EN, estática (HTML/CSS/JS puro, sem build). Também serve o **feed do canal** (`prototype/feeds/modules.json`).
-2. **`roku/`** — **Fase 1: o channel de verdade** em BrightScript + SceneGraph (Home Deep Space, feed do Hub v0, PT/EN, rungs 1 e 3 verificados).
+2. **`roku/`** — **Fase 1: o channel de verdade** em BrightScript + SceneGraph (Home Deep Space, feed do Hub v0 com **atualização automática de conteúdo**, PT/EN, rungs 1 e 3 verificados).
 3. **`skills/`** — as 4 skills do autor (projects · design · security · theskill/craftsmanship) **adaptadas para a área Roku**, que passam a guiar o desenvolvimento do channel.
 4. **`docs/` + `brain/`** — a pesquisa verificada nas fontes oficiais da Roku e a memória do projeto (decisões ADR, device-info, tasks).
 
@@ -39,19 +39,19 @@ O workflow incluído (`.github/workflows/pages.yml`) publica a pasta `prototype/
 O **channel em BrightScript + SceneGraph** que recria a Home Deep Space na TV, com a pesquisa dos últimos dias aplicada (tamanhos de arte medidos no sample oficial, safe zones FHD, protocolo `onKeyEvent`, Task + `roUrlTransfer` fora do render thread):
 
 - **Home Deep Space**: fundo nebulosa (mesma paleta do protótipo), saudação por hora, relógio (24h PT / 12h EN), card de rede, **rail de 4 módulos** com foco em ring ciano + escala, painel de detalhe e hintbar — tudo ≥ 24px e dentro do action-safe.
-- **Feed do “Hub v0”**: o canal busca `feeds/modules.json` aqui do Pages, **valida tudo** (whitelist de ids, limites de tamanho, tipos — fail-closed) e cai num **fallback offline** embutido se a rede falhar.
+- **Feed do “Hub v0” com atualização automática**: o canal busca `feeds/modules.json` aqui do Pages, **valida tudo** (whitelist de ids, limites de tamanho, tipos — fail-closed) e cai num **fallback offline** embutido se a rede falhar. **Atualiza sozinho**: re-checa o feed a cada 15 min com o canal aberto (ou **OK em Configurações** para forçar) — se `meta.version` subiu, re-renderiza o rail e mostra toast “Conteúdo atualizado”, **sem reinstalar nada** (ADR-0006: conteúdo é OTA; código muda com `npm run deploy`, in-place; na Store futura a Roku distribui sozinha).
 - **Idioma PT/EN** trocado com a tecla `*` (options) e persistido no registro da TV.
-- **Verificação**: rung 1 (`bsc` compila com zero erros) e rung 3-lite (contrato do feed: 16/16 fixtures hostis) — **rung 4/5 (smoke na AOC 43S5155) é o próximo passo**, guia completo em `docs/fase1-tv.md`.
+- **Verificação**: rung 1 (`bsc` compila com zero erros) e rung 3-lite (contrato do feed: 29/29 fixtures hostis, incluindo o meta) — **rung 4/5 (smoke na AOC 43S5155) é o próximo passo**, guia completo em `docs/fase1-tv.md`.
 
 ```bash
 cd roku
 npm install          # brighterscript 0.73.8 + roku-deploy 3.18.4 (pinados)
 npm run compile      # bsc — zero erros
-npm test             # contrato do feed (16 fixtures + JSON publicado)
+npm test             # contrato do feed (29 fixtures + JSON publicado)
 cd src && zip -r ../galaxyos-channel.zip manifest source components images   # zip de sideload
 ```
 
-Zip pronto pra sideload: **`galaxyos-roku-channel-v0.1.zip`** (228 KB, muito abaixo do orçamento de package).
+Zip pronto pra sideload: **`galaxyos-roku-channel-v0.2.zip`** (com o atualizador de conteúdo).
 
 ---
 
@@ -80,7 +80,7 @@ O que a pesquisa nas fontes oficiais já travou de decisão:
 
 ## Roadmap
 
-- **Fase 1** — ✅ scaffold do channel (Home, feed Hub v0, PT/EN) · ⬜ smoke na TV: **`docs/fase1-tv.md`**.
+- **Fase 1** — ✅ scaffold do channel (Home, feed Hub v0, PT/EN) · ✅ atualizador de conteúdo OTA (canal v0.2, ADR-0006) · ⬜ smoke na TV: **`docs/fase1-tv.md`**.
 - **Fase 2** — GalaxyOS Hub: API mínima (Vercel) + módulo Jogos (RowList virtualizado, jogos como dados).
 - **Fase 3** — Web Hub: adaptadores JSON → UI nativa.
 - **Fase 4** — Connect: pairing pelo Hub (WebSocket — host dedicado), companion **Linux Mint XFCE** (systemd + Chromium headless).

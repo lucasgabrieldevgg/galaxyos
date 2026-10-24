@@ -6,7 +6,8 @@
  *  1. As REGRAS: porta fiel do validador BrightScript (src/source/feed-validate.brs),
  *     com whitelist/limites EXTRAÍDOS dos próprios .brs (sem divergência possível).
  *  2. Os FIXTURES: JSON válido + hostis (vazio, tipo errado, id inválido,
- *     strings gigantes, badge inválido, campo ausente).
+ *     strings gigantes, badge inválido, campo ausente) + meta do feed
+ *     (version/updated — ADR-0006, atualização de conteúdo).
  *  3. O ARQUIVO REAL publicado (prototype/feeds/modules.json).
  *
  * O que NÃO é testado aqui (declarado): o runtime .brs em si — isso é rung 4
@@ -24,6 +25,8 @@ const maxModules = Number(configBrs.match(/maxModules:\s*(\d+)/)[1]);
 const maxTitleLen = Number(configBrs.match(/maxTitleLen:\s*(\d+)/)[1]);
 const maxDescLen = Number(configBrs.match(/maxDescLen:\s*(\d+)/)[1]);
 const allowedIds = [...validateBrs.match(/allowedIds = \{([^}]*)\}/)[1].matchAll(/([a-z]+):\s*true/g)].map(m => m[1]);
+const maxMetaVersion = Number(validateBrs.match(/v > 0 and v <= (\d+)/)[1]);
+const maxUpdatedLen = Number(validateBrs.match(/Len\(u\) > 0 and Len\(u\) <= (\d+)/)[1]);
 
 /* ── porta fiel de validateModules() ── */
 function validateModules(json) {
@@ -62,6 +65,24 @@ function validateModules(json) {
     return out;
 }
 
+/* ── porta fiel de validateMeta() ── */
+function validateMeta(json) {
+    const meta = { version: 0, updated: '' };
+    if (json === null || json === undefined) return meta;
+    if (typeof json !== 'object' || Array.isArray(json)) return meta;
+
+    const raw = json.meta;
+    if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return meta;
+
+    const v = raw.version;
+    if (typeof v === 'number' && Number.isInteger(v) && v > 0 && v <= maxMetaVersion) meta.version = v;
+
+    const u = raw.updated;
+    if (typeof u === 'string' && u.length > 0 && u.length <= maxUpdatedLen) meta.updated = u;
+
+    return meta;
+}
+
 /* ── fixtures ── */
 const big = 'x'.repeat(500);
 const validModule = (over = {}) => Object.assign({
@@ -88,7 +109,7 @@ const cases = [
     { name: 'item não-objeto (string)', input: { modules: ['games'] }, expect: 'invalid' },
 ];
 
-/* ── executa ── */
+/* ── executa: validateModules ── */
 let fail = 0;
 for (const c of cases) {
     const got = validateModules(c.input);
@@ -97,6 +118,30 @@ for (const c of cases) {
     if (pass && c.badge !== undefined && got[0].badge !== c.badge) pass = false;
     if (!pass) fail++;
     console.log(`  ${pass ? 'PASS' : 'FAIL'}  ${c.name}`);
+}
+
+/* ── executa: validateMeta (ADR-0006) ── */
+const metaCases = [
+    { name: 'meta válido (version + updated)', meta: { version: 2, updated: '2026-10-24' }, version: 2, updated: '2026-10-24' },
+    { name: 'sem meta → defaults (0, "")', meta: undefined, version: 0, updated: '' },
+    { name: 'meta array → defaults', meta: [], version: 0, updated: '' },
+    { name: 'meta nulo → defaults', meta: null, version: 0, updated: '' },
+    { name: 'version string → 0', meta: { version: '2' }, version: 0, updated: '' },
+    { name: 'version float → 0', meta: { version: 1.5 }, version: 0, updated: '' },
+    { name: 'version 0 → 0', meta: { version: 0 }, version: 0, updated: '' },
+    { name: 'version negativo → 0', meta: { version: -3 }, version: 0, updated: '' },
+    { name: 'version acima do teto → 0', meta: { version: maxMetaVersion + 1 }, version: 0, updated: '' },
+    { name: 'updated numérico → vazio', meta: { version: 2, updated: 7 }, version: 2, updated: '' },
+    { name: 'updated gigante → vazio', meta: { version: 2, updated: 'x'.repeat(maxUpdatedLen + 1) }, version: 2, updated: '' },
+    { name: 'updated null → vazio', meta: { version: 2, updated: null }, version: 2, updated: '' },
+];
+for (const c of metaCases) {
+    const json = { modules: [validModule()] };
+    if (c.meta !== undefined) json.meta = c.meta;
+    const got = validateMeta(json);
+    const pass = got.version === c.version && got.updated === c.updated;
+    if (!pass) fail++;
+    console.log(`  ${pass ? 'PASS' : 'FAIL'}  meta: ${c.name}`);
 }
 
 /* ── valida o arquivo publicado ── */
@@ -109,6 +154,10 @@ else {
     console.log(`  PASS  feed publicado válido (${result.length} módulos: ${ids})`);
     if (result.length !== 4) { fail++; console.log('  FAIL  esperava 4 módulos'); }
 }
+
+const meta = validateMeta(feed);
+if (meta.version < 1) { fail++; console.log('  FAIL  feed publicado sem meta.version válido'); }
+else console.log(`  PASS  meta do feed publicado (v${meta.version} · ${meta.updated || 'sem data'})`);
 
 console.log(fail === 0 ? '\nTODOS OS CASOS PASSARAM' : `\n${fail} FALHA(S)`);
 process.exit(fail === 0 ? 0 : 1);
