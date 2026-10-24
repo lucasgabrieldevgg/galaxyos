@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark" data-wall="nebula">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GalaxyOS — Home · Protótipo para Roku TV</title>
+<script>
+  /* tema/fundo salvos aplicados antes do primeiro paint — evita flash */
+  try {
+    document.documentElement.dataset.theme = localStorage.getItem('galaxyos.theme') || 'dark';
+    document.documentElement.dataset.wall  = localStorage.getItem('galaxyos.wall')  || 'nebula';
+  } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="bezel">
+  <div class="stage" id="stage">
+
+    <!-- ══ WALLPAPER: nebulosa + estrelas ══ -->
+    <div class="wallpaper" aria-hidden="true">
+      <div class="wp-blob wp-a"></div>
+      <div class="wp-blob wp-b"></div>
+      <div class="wp-blob wp-c"></div>
+      <canvas class="wp-stars" id="wpStars" width="1920" height="1080"></canvas>
+      <div class="wp-vignette"></div>
+    </div>
+
+    <!-- ══ TOP BAR ══ -->
+    <header class="topbar">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 48 48" aria-hidden="true">
+          <circle cx="24" cy="24" r="9" fill="var(--accent)"/>
+          <ellipse cx="24" cy="24" rx="20" ry="8" fill="none" stroke="var(--accent)" stroke-width="2.4" opacity=".55" transform="rotate(-24 24 24)"/>
+          <circle cx="41.5" cy="17.5" r="3.2" fill="var(--accent)"/>
+        </svg>
+        <span class="brand-name">GalaxyOS</span>
+        <span class="chip chip-soft" data-i18n="versionChip">v0.2 · protótipo web</span>
+      </div>
+      <div class="topbar-right">
+        <button class="chip chip-btn" id="langChip" data-focusable aria-label="Idioma / Language">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c2.8 2.6 4 5.6 4 9s-1.2 6.4-4 9c-2.8-2.6-4-5.6-4-9s1.2-6.4 4-9z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span id="langChipLabel">PT</span>
+        </button>
+        <div class="chip chip-soft">
+          <svg class="i-wifi" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9.5a14.5 14.5 0 0 1 19 0M5.5 13a10 10 0 0 1 13 0M8.7 16.4a5.5 5.5 0 0 1 6.6 0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="19.4" r="1.7" fill="currentColor"/></svg>
+          <span>GalaxyNet 5G</span>
+        </div>
+        <div class="avatar" aria-hidden="true">L</div>
+      </div>
+    </header>
+
+    <!-- ══ HERO: saudação + relógio + rede ══ -->
+    <section class="hero" aria-label="Início">
+      <div class="hero-left">
+        <p class="greeting" id="greeting">Boa noite,</p>
+        <h1 class="user-name">Lucas</h1>
+        <div class="clock" role="timer" aria-label="Relógio">
+          <span class="clock-time" id="clockTime">00:00</span><span class="clock-sec" id="clockSec">00</span>
+        </div>
+        <p class="clock-date" id="clockDate">—</p>
+      </div>
+
+      <div class="netcard" aria-label="Status da rede">
+        <div class="netcard-head">
+          <svg class="i-wifi big" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9.5a14.5 14.5 0 0 1 19 0M5.5 13a10 10 0 0 1 13 0M8.7 16.4a5.5 5.5 0 0 1 6.6 0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="19.4" r="1.7" fill="currentColor"/></svg>
+          <h2 data-i18n="netTitle">Rede</h2>
+          <span class="netcard-badge"><span class="dot dot-ok"></span><span data-i18n="netStatus">Conectado · Internet OK</span></span>
+        </div>
+        <dl class="netcard-rows">
+          <div class="netcard-row"><dt data-i18n="netSignal">Sinal</dt><dd>
+            <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <span data-i18n="netSignalValue">Excelente</span></dd></div>
+          <div class="netcard-row"><dt data-i18n="netIp">Endereço IP</dt><dd class="mono">192.168.0.42</dd></div>
+          <div class="netcard-row"><dt data-i18n="netPing">Latência</dt><dd class="mono">12 ms</dd></div>
+        </dl>
+        <p class="netcard-foot">AOC 43S5155 · Roku TV · 1080p · Wi-Fi 5 GHz</p>
+      </div>
+    </section>
+
+    <!-- ══ ATALHOS ══ -->
+    <section class="section" aria-label="Atalhos">
+      <h2 class="section-label" data-i18n="shortcuts">Atalhos</h2>
+      <div class="rail" id="railShortcuts">
+        <button class="tile" data-focusable data-app="YouTube"    style="--tile:#FF0000"><span class="tile-glyph">Y</span><span class="tile-name">YouTube</span></button>
+        <button class="tile" data-focusable data-app="Netflix"    style="--tile:#E50914"><span class="tile-glyph">N</span><span class="tile-name">Netflix</span></button>
+        <button class="tile" data-focusable data-app="Spotify"    style="--tile:#1DB954"><span class="tile-glyph">S</span><span class="tile-name">Spotify</span></button>
+        <button class="tile" data-focusable data-app="Prime Video" style="--tile:#00A8E1"><span class="tile-glyph">P</span><span class="tile-name">Prime Video</span></button>
+        <button class="tile" data-focusable data-app="Disney+"    style="--tile:#1A3B8C"><span class="tile-glyph">D</span><span class="tile-name">Disney+</span></button>
+        <button class="tile" data-focusable data-app="Twitch"     style="--tile:#9146FF"><span class="tile-glyph">T</span><span class="tile-name">Twitch</span></button>
+        <button class="tile" data-focusable data-app="Plex"       style="--tile:#E5A00D"><span class="tile-glyph">X</span><span class="tile-name">Plex</span></button>
+        <button class="tile" data-focusable data-app="Pluto TV"   style="--tile:#F89B2A"><span class="tile-glyph">Pl</span><span class="tile-name">Pluto TV</span></button>
+      </div>
+    </section>
+
+    <!-- ══ MÓDULOS GALAXYOS ══ -->
+    <section class="section" aria-label="Módulos GalaxyOS">
+      <h2 class="section-label" data-i18n="modules">GalaxyOS</h2>
+      <div class="rail modules" id="railModules">
+
+        <button class="module" data-focusable data-module="games">
+          <span class="module-badge badge-soon" data-i18n="badgeSoon">Em breve</span>
+          <svg class="module-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <rect x="4" y="14" width="40" height="20" rx="10" fill="none" stroke="currentColor" stroke-width="2.6"/>
+            <path d="M15 20v8M11 24h8M31 22.5v.01M35 26v.01" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          </svg>
+          <span class="module-title" data-i18n="modGames">Jogos</span>
+          <span class="module-desc" data-i18n="modGamesDesc">Biblioteca, minigames e recordes.</span>
+        </button>
+
+        <button class="module" data-focusable data-module="web">
+          <span class="module-badge badge-soon" data-i18n="badgeSoon">Em breve</span>
+          <svg class="module-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle cx="24" cy="24" r="17" fill="none" stroke="currentColor" stroke-width="2.6"/>
+            <path d="M7 24h34M24 7c4.6 4.6 6.9 10.3 6.9 17S28.6 36.4 24 41c-4.6-4.6-6.9-10.3-6.9-17S19.4 11.6 24 7z" fill="none" stroke="currentColor" stroke-width="2.6"/>
+          </svg>
+          <span class="module-title">Web Hub</span>
+          <span class="module-desc" data-i18n="modWebDesc">Conteúdo e serviços via GalaxyOS Hub.</span>
+        </button>
+
+        <button class="module" data-focusable data-module="connect">
+          <span class="module-badge badge-soon" data-i18n="badgeSoon">Em breve</span>
+          <svg class="module-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <rect x="4" y="8" width="30" height="21" rx="3" fill="none" stroke="currentColor" stroke-width="2.6"/>
+            <path d="M12 36h14M19 29v7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <rect x="36" y="20" width="8" height="19" rx="2.6" fill="none" stroke="currentColor" stroke-width="2.6"/>
+          </svg>
+          <span class="module-title">Connect</span>
+          <span class="module-desc" data-i18n="modConnectDesc">PC na TV, celular no controle.</span>
+        </button>
+
+        <button class="module" data-focusable data-module="settings">
+          <span class="module-badge badge-now" data-i18n="badgeNow">v0.2</span>
+          <svg class="module-icon" viewBox="0 0 48 48" aria-hidden="true">
+            <circle cx="24" cy="24" r="6.5" fill="none" stroke="currentColor" stroke-width="2.6"/>
+            <path d="M24 5v6M24 37v6M9.2 9.2l4.2 4.2M34.6 34.6l4.2 4.2M5 24h6M37 24h6M9.2 38.8l4.2-4.2M34.6 13.4l4.2-4.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          </svg>
+          <span class="module-title" data-i18n="modSettings">Configurações</span>
+          <span class="module-desc" data-i18n="modSettingsDesc">Idioma, aparência e informações.</span>
+        </button>
+
+      </div>
+    </section>
+
+    <!-- ══ BARRA DE AJUDA ══ -->
+    <footer class="hintbar">
+      <div class="keys" aria-hidden="true">
+        <span class="keycap">←&nbsp;↑&nbsp;↓&nbsp;→</span><span data-i18n="hintNav">Navegar</span>
+        <span class="keysep"></span>
+        <span class="keycap">Enter</span><span data-i18n="hintOk">OK</span>
+        <span class="keysep"></span>
+        <span class="keycap">Backspace</span><span data-i18n="hintBack">Voltar</span>
+      </div>
+      <button class="chip chip-btn" id="remoteToggle" data-focusable data-i18n="remoteToggle">Controle na tela</button>
+    </footer>
+
+    <!-- ══ CONTROLE NA TELA (p/ celular) ══ -->
+    <div class="remote" id="remote" hidden>
+      <div class="remote-head"><span data-i18n="remoteTitle">Controle</span>
+        <button class="icon-btn" id="remoteClose" aria-label="Fechar controle">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="dpad">
+        <button class="dp-btn dp-up" data-dir="up" aria-label="Cima"><svg viewBox="0 0 24 24"><path d="M12 7v10M12 7l-5 5M12 7l5 5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="dp-btn dp-left" data-dir="left" aria-label="Esquerda"><svg viewBox="0 0 24 24"><path d="M7 12h10M7 12l5-5M7 12l5 5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="dp-ok" data-action="ok" aria-label="OK">OK</button>
+        <button class="dp-btn dp-right" data-dir="right" aria-label="Direita"><svg viewBox="0 0 24 24"><path d="M17 12H7M17 12l-5-5M17 12l-5 5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="dp-btn dp-down" data-dir="down" aria-label="Baixo"><svg viewBox="0 0 24 24"><path d="M12 17V7M12 17l-5-5M12 17l5-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <button class="remote-back" data-action="back" data-i18n="hintBack">Voltar</button>
+    </div>
+
+    <!-- ══ CONFIGURAÇÕES ══ -->
+    <div class="overlay" id="overlaySettings" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <div class="modal-head">
+          <h2 id="settingsTitle" data-i18n="settings">Configurações</h2>
+          <button class="icon-btn" id="settingsClose" aria-label="Fechar">
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+
+          <section class="modal-section">
+            <h3 data-i18n="settingsAppearance">Aparência</h3>
+            <p class="seg-label" data-i18n="settingsTheme">Tema</p>
+            <div class="segmented" role="radiogroup" aria-label="Tema">
+              <button class="seg-btn" id="segThemeDark"  data-focusable data-theme="dark"  data-i18n="themeDark">Escuro</button>
+              <button class="seg-btn" id="segThemeLight" data-focusable data-theme="light" data-i18n="themeLight">Claro</button>
+            </div>
+            <p class="seg-label" data-i18n="settingsWall">Fundo de tela</p>
+            <div class="segmented" role="radiogroup" aria-label="Fundo de tela">
+              <button class="seg-btn" id="segWallNebula" data-focusable data-wall="nebula" data-i18n="wallNebula">Nebulosa</button>
+              <button class="seg-btn" id="segWallAurora" data-focusable data-wall="aurora" data-i18n="wallAurora">Aurora</button>
+              <button class="seg-btn" id="segWallClean"  data-focusable data-wall="clean"  data-i18n="wallClean">Limpo</button>
+            </div>
+          </section>
+
+          <section class="modal-section">
+            <h3 data-i18n="settingsLang">Idioma</h3>
+            <div class="segmented" role="radiogroup" aria-label="Idioma">
+              <button class="seg-btn" id="segPt" data-focusable data-lang="pt">Português (BR)</button>
+              <button class="seg-btn" id="segEn" data-focusable data-lang="en">English</button>
+            </div>
+          </section>
+
+          <section class="modal-section">
+            <h3 data-i18n="settingsKeys">Atalhos do teclado</h3>
+            <ul class="keys-list">
+              <li><span class="keycap">←&nbsp;↑&nbsp;↓&nbsp;→</span><span data-i18n="keyNav">mover o foco</span></li>
+              <li><span class="keycap">Enter</span><span data-i18n="keyOk">abrir / selecionar</span></li>
+              <li><span class="keycap">Backspace</span><span data-i18n="keyBack">voltar / fechar</span></li>
+            </ul>
+          </section>
+
+          <section class="modal-section">
+            <h3 data-i18n="settingsAbout">Sobre</h3>
+            <p class="about-text" data-i18n="aboutText">Protótipo estático da tela inicial do GalaxyOS para Roku TV. A versão real será um channel em BrightScript + SceneGraph, alimentado pelo GalaxyOS Hub (API + conteúdo), com módulos Jogos, Web Hub e Connect.</p>
+            <p class="about-sub">AOC 43S5155 · Roku TV · 1920 × 1080 · 512 MB</p>
+          </section>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TOAST ══ -->
+    <div class="toast" id="toast" role="status" hidden></div>
+
+  </div>
+  <div class="bezel-foot" aria-hidden="true"><span class="led"></span><span class="bezel-label">ROKU TV · 1920 × 1080</span></div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

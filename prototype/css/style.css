@@ -1,0 +1,364 @@
+/* ═══════════════════════════════════════════════════════════════
+   GalaxyOS — Home prototype · v0.2 “Deep Space”
+   Tema escuro padrão: fundo Nebulosa (blobs + estrelas animadas
+   em canvas + estrela cadente). Variantes Aurora e Limpo; o tema
+   Claro (Minimal Daylight, v0.1) fica preservado nas Configurações.
+   Palco 1920×1080 com moldura · foco = cursor · D-pad only.
+   Typeface: Manrope (display) + Roboto (texto/relógio, tabular).
+   ═══════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ── Deep Space — tema padrão ── */
+  --bg:#05070F;
+  --surface:rgba(255,255,255,.055);
+  --surface-2:rgba(255,255,255,.10);
+  --panel:rgba(13,18,33,.88);
+  --line:rgba(255,255,255,.11);
+  --text:#EDF1F9;
+  --text-2:#98A3BE;
+  --accent:#6EE7FF;
+  --accent-2:#8B7CFF;
+  --on-accent:#04121C;
+  --accent-soft:rgba(110,231,255,.13);
+  --ring:#FFFFFF;
+  --ok:#4ADE80;   --ok-soft:rgba(74,222,128,.15);   --pulse:rgba(74,222,128,.42);
+  --warn:#FBC75C; --warn-soft:rgba(251,199,92,.15);
+  --toast-bg:rgba(238,243,253,.96); --toast-fg:#131A29;
+  --scrim:rgba(3,5,12,.58);
+  --avatar-bg:linear-gradient(135deg,#6EE7FF,#8B7CFF);
+  --avatar-fg:#04121C;
+  --r-lg:28px; --r-md:20px; --r-sm:14px;
+  --sh-1:0 2px 12px rgba(0,0,0,.35);
+  --sh-2:0 22px 64px rgba(0,0,0,.6);
+  --sh-focus:0 0 0 4px var(--ring), 0 0 0 10px rgba(110,231,255,.28), 0 16px 44px rgba(0,0,0,.55);
+  --f-display:'Manrope',system-ui,sans-serif;
+  --f-text:'Roboto',system-ui,sans-serif;
+
+  /* ── Fundo padrão: Nebulosa ── */
+  --wp-base:#05070F;
+  --wp-a:rgba(96,86,255,.20);
+  --wp-b:rgba(20,184,166,.13);
+  --wp-c:rgba(139,92,246,.15);
+  --wp-stars:1;
+  --wp-vig:rgba(2,3,9,.60);
+}
+
+/* ── variantes de fundo (tema escuro) ── */
+:root[data-wall='aurora']{
+  --wp-a:rgba(45,212,191,.19); --wp-b:rgba(56,189,248,.15); --wp-c:rgba(74,222,128,.11);
+}
+:root[data-wall='clean']{
+  --wp-a:transparent; --wp-b:transparent; --wp-c:rgba(255,255,255,.028);
+  --wp-stars:0; --wp-vig:rgba(2,3,9,.5);
+}
+
+/* ── Tema Claro: Minimal Daylight (v0.1) ── */
+html[data-theme='light']{
+  --bg:#F4F6FA;
+  --surface:#FFFFFF;
+  --surface-2:#EDF1F7;
+  --panel:#FFFFFF;
+  --line:#DCE3EE;
+  --text:#1B2233;
+  --text-2:#59637A;
+  --accent:#0B57D0;
+  --on-accent:#FFFFFF;
+  --accent-soft:#E8F0FE;
+  --ring:#1A73E8;
+  --ok:#14804A;   --ok-soft:#E3F4EB;   --pulse:rgba(20,128,74,.35);
+  --warn:#92400E; --warn-soft:#FCEFC7;
+  --toast-bg:#1B2233; --toast-fg:#FFFFFF;
+  --scrim:rgba(16,18,22,.45);
+  --avatar-bg:#0B57D0;
+  --avatar-fg:#FFFFFF;
+  --sh-1:0 2px 10px rgba(27,34,51,.06);
+  --sh-2:0 8px 30px rgba(27,34,51,.12);
+  --sh-focus:0 0 0 4px var(--ring), 0 14px 38px rgba(26,115,232,.28);
+  /* nebulosa pastel clara */
+  --wp-base:#F4F6FA;
+  --wp-a:rgba(124,140,255,.15);
+  --wp-b:rgba(45,212,191,.13);
+  --wp-c:rgba(168,85,247,.09);
+  --wp-stars:0;
+  --wp-vig:rgba(203,213,235,.38);
+}
+html[data-theme='light'][data-wall='aurora']{
+  --wp-a:rgba(45,212,191,.16); --wp-b:rgba(56,189,248,.13); --wp-c:rgba(74,222,128,.10);
+}
+html[data-theme='light'][data-wall='clean']{
+  --wp-a:transparent; --wp-b:transparent; --wp-c:rgba(27,34,51,.02);
+  --wp-vig:rgba(203,213,235,.26);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+
+/* hidden deve vencer: .remote/.overlay/.toast têm display:flex/block
+   no CSS do autor, que sobrescreveria a regra [hidden] da UA sheet */
+[hidden]{display:none!important}
+
+body{
+  background:#0B0D12;
+  font-family:var(--f-text);
+  color:var(--text);
+  position:relative;overflow:hidden;
+  min-height:100vh;
+}
+
+/* ── TV bezel: a sala escura em volta do aparelho ──
+   Centralização por translate(-50%,-50%) + scale(s): o tamanho de
+   layout (1952×1140) NÃO cabe no viewport, então flex centering
+   cortaria o topo — o posicionamento absoluto independe disso. */
+.bezel{
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%) scale(1);
+  background:#1A1D23;
+  padding:16px 16px 0;
+  border-radius:22px;
+  box-shadow:0 30px 80px rgba(0,0,0,.55), inset 0 0 0 1px #262B33;
+}
+.bezel-foot{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  height:44px;
+}
+.led{width:8px;height:8px;border-radius:50%;background:#2E7D4F;box-shadow:0 0 8px 1px rgba(46,170,90,.8)}
+.bezel-label{font-family:var(--f-display);font-size:12px;letter-spacing:.24em;color:#5B636F}
+
+/* ── Stage: SEMPRE 1920×1080, escalado pra caber na janela ── */
+.stage{
+  width:1920px;height:1080px;
+  background:var(--bg);
+  border-radius:10px;
+  position:relative;
+  transform-origin:top left;
+  display:flex;flex-direction:column;
+  padding:28px 72px 20px;
+  overflow:hidden;
+}
+
+/* conteúdo flui ACIMA do wallpaper (z-index 0) */
+.topbar,.hero,.section,.hintbar{position:relative;z-index:1}
+
+/* ══ WALLPAPER: nebulosa + estrelas ══ */
+.wallpaper{
+  position:absolute;inset:0;background:var(--wp-base);
+  overflow:hidden;pointer-events:none;z-index:0;
+}
+.wp-blob{position:absolute;border-radius:50%;filter:blur(110px);will-change:transform}
+.wp-a{width:1150px;height:900px;top:-300px;right:-260px;background:var(--wp-a);animation:drift-a 95s ease-in-out infinite alternate}
+.wp-b{width:1000px;height:780px;bottom:-340px;left:-300px;background:var(--wp-b);animation:drift-b 120s ease-in-out infinite alternate}
+.wp-c{width:720px;height:620px;top:36%;left:30%;background:var(--wp-c);opacity:.75;animation:drift-c 140s ease-in-out infinite alternate}
+.wp-stars{position:absolute;inset:0;width:100%;height:100%;opacity:var(--wp-stars);transition:opacity .6s ease}
+.wp-vignette{position:absolute;inset:0;background:radial-gradient(130% 100% at 50% 38%,transparent 52%,var(--wp-vig) 100%)}
+@keyframes drift-a{to{transform:translate(-130px,90px) scale(1.1)}}
+@keyframes drift-b{to{transform:translate(150px,-80px) scale(1.08)}}
+@keyframes drift-c{to{transform:translate(-90px,-110px) scale(1.14)}}
+
+/* ══ TOP BAR ══ */
+.topbar{display:flex;align-items:center;justify-content:space-between;height:72px;flex:none}
+.brand{display:flex;align-items:center;gap:16px}
+.logo{width:44px;height:44px}
+.brand-name{font-family:var(--f-display);font-weight:800;font-size:32px;letter-spacing:-.01em}
+/* gradiente cósmico na marca — só no escuro */
+html[data-theme='dark'] .brand-name{
+  background:linear-gradient(94deg,#F4F8FF 5%,#9BE8FF 55%,#BBA8FF 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.topbar-right{display:flex;align-items:center;gap:16px}
+
+.chip{display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 22px;border-radius:26px;font-size:24px}
+.chip svg{width:26px;height:26px}
+.chip-soft{background:var(--surface);border:1px solid var(--line);color:var(--text-2);font-weight:500;box-shadow:var(--sh-1);backdrop-filter:blur(8px)}
+.chip-btn{
+  background:var(--surface);border:1px solid var(--line);color:var(--text);
+  font-family:var(--f-text);font-weight:500;font-size:24px;cursor:pointer;box-shadow:var(--sh-1);backdrop-filter:blur(8px)
+}
+.chip-btn:hover{background:var(--accent-soft)}
+#langChip{font-family:var(--f-display);font-weight:700}
+#langChip span:last-child{min-width:34px;text-align:center}
+.avatar{
+  width:52px;height:52px;border-radius:50%;background:var(--avatar-bg);color:var(--avatar-fg);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-display);font-weight:700;font-size:26px;box-shadow:var(--sh-1)
+}
+
+/* ══ HERO ══ */
+.hero{
+  flex:none;display:grid;grid-template-columns:1fr 560px;gap:56px;
+  align-items:start;margin-top:16px;
+}
+.greeting{font-size:30px;color:var(--text-2);font-weight:400}
+.user-name{font-family:var(--f-display);font-weight:800;font-size:58px;letter-spacing:-.015em;line-height:1.08;margin-top:2px}
+.clock{margin-top:16px;display:flex;align-items:baseline;gap:24px}
+.clock-time{
+  font-weight:300;font-size:150px;line-height:1;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum";
+}
+.clock-sec{
+  font-weight:500;font-size:52px;color:var(--accent);
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum";
+}
+.clock-date{margin-top:14px;font-size:28px;color:var(--text-2)}
+
+.netcard{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sh-1);padding:28px 30px;margin-top:14px;
+  backdrop-filter:blur(7px);
+}
+.netcard-head{display:flex;align-items:center;gap:14px}
+.netcard-head h2{font-family:var(--f-display);font-weight:700;font-size:28px;margin-right:auto}
+.netcard-head .i-wifi.big{width:34px;height:34px;color:var(--accent)}
+.netcard-badge{
+  display:inline-flex;align-items:center;gap:10px;background:var(--ok-soft);color:var(--ok);
+  font-size:24px;font-weight:500;border-radius:22px;padding:8px 18px
+}
+.dot{width:12px;height:12px;border-radius:50%;flex:none}
+.dot-ok{background:var(--ok);animation:pulse 2.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 var(--pulse)}50%{box-shadow:0 0 0 9px transparent}}
+
+.netcard-rows{margin-top:22px;display:grid;gap:14px}
+.netcard-row{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--surface-2);padding-bottom:14px}
+.netcard-row:last-child{border-bottom:none;padding-bottom:0}
+.netcard-row dt{font-size:24px;color:var(--text-2)}
+.netcard-row dd{display:flex;align-items:center;gap:12px;font-size:24px;font-weight:500}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.bars{display:inline-flex;align-items:flex-end;gap:4px;height:22px}
+.bars i{width:7px;border-radius:2px;background:var(--accent)}
+.bars i:nth-child(1){height:9px}.bars i:nth-child(2){height:13px}
+.bars i:nth-child(3){height:17px}.bars i:nth-child(4){height:22px}
+.netcard-foot{margin-top:20px;font-size:24px;color:var(--text-2)}
+
+/* ══ SEÇÕES E RAILS ══ */
+.section{margin-top:28px;flex:none}
+.section-label{font-family:var(--f-display);font-weight:700;font-size:30px;color:var(--text);margin-bottom:18px}
+
+.rail{display:flex;gap:22px}
+
+.tile{
+  width:158px;height:184px;flex:none;border:1px solid var(--line);border-radius:var(--r-md);cursor:pointer;
+  background:var(--surface);box-shadow:var(--sh-1);backdrop-filter:blur(7px);
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:14px 8px 12px;gap:10px;
+}
+.tile-glyph{
+  width:104px;height:104px;border-radius:26px;background:var(--tile);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-family:var(--f-display);font-weight:800;font-size:52px;
+}
+.tile-name{font-size:24px;font-weight:500;color:var(--text)}
+
+.module{
+  width:426px;height:196px;flex:none;border:1px solid var(--line);border-radius:var(--r-md);cursor:pointer;
+  background:var(--surface);box-shadow:var(--sh-1);position:relative;backdrop-filter:blur(7px);
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  padding:0 30px;gap:8px;text-align:left;
+}
+.module-icon{width:52px;height:52px;color:var(--accent);margin-bottom:6px}
+.module-title{font-family:var(--f-display);font-weight:700;font-size:30px;color:var(--text)}
+.module-desc{font-size:24px;color:var(--text-2);line-height:1.35}
+.module-badge{
+  position:absolute;top:18px;right:20px;border-radius:20px;
+  font-size:24px;font-weight:500;padding:4px 16px
+}
+.badge-soon{background:var(--warn-soft);color:var(--warn)}
+.badge-now{background:var(--accent-soft);color:var(--accent)}
+
+/* ══ FOCO: o cursor do sistema ══ */
+button:focus{outline:none}
+.focused{box-shadow:var(--sh-focus);transform:scale(1.05);z-index:5;transition:transform .13s ease-out, box-shadow .13s ease-out}
+.focused .tile-glyph{transform:translateY(-2px)}
+.focused.chip-btn:not(.active),.focused.tile,.focused.module,
+.focused.icon-btn:not(.active),.focused.seg-btn:not(.active){background:var(--surface)}
+.tile,.module,.chip-btn,.icon-btn,.seg-btn{transition:transform .13s ease-out, box-shadow .13s ease-out, background .13s ease-out}
+
+/* ══ BARRA DE AJUDA ══ */
+.hintbar{
+  margin-top:auto;flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding-top:22px;
+}
+.keys{display:flex;align-items:center;gap:14px;font-size:24px;color:var(--text-2)}
+.keysep{width:8px;height:8px;border-radius:50%;background:var(--line);margin:0 6px}
+.keycap{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--surface);border:1px solid var(--line);border-bottom-width:3px;
+  border-radius:10px;padding:5px 14px;font-size:24px;color:var(--text);
+  font-weight:500;box-shadow:var(--sh-1);font-variant-numeric:tabular-nums
+}
+
+/* ══ CONTROLE NA TELA ══ */
+.remote{
+  position:absolute;right:44px;bottom:96px;width:280px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--sh-2);
+  backdrop-filter:blur(18px);
+  padding:20px;display:flex;flex-direction:column;align-items:center;gap:16px;z-index:40;
+}
+.remote-head{width:100%;display:flex;align-items:center;justify-content:space-between}
+.remote-head span{font-family:var(--f-display);font-weight:700;font-size:26px;color:var(--text)}
+.icon-btn{
+  width:56px;height:56px;border:none;border-radius:50%;background:var(--surface-2);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-2)
+}
+.icon-btn svg{width:26px;height:26px}
+.dpad{position:relative;width:220px;height:220px}
+.dp-btn{
+  position:absolute;width:70px;height:70px;border:none;border-radius:50%;cursor:pointer;
+  background:var(--surface-2);color:var(--text-2);display:flex;align-items:center;justify-content:center
+}
+.dp-btn svg{width:30px;height:30px}
+.dp-up{top:0;left:75px}.dp-down{bottom:0;left:75px}
+.dp-left{left:0;top:75px}.dp-right{right:0;top:75px}
+.dp-ok{
+  position:absolute;left:65px;top:65px;width:90px;height:90px;border-radius:50%;cursor:pointer;
+  border:none;background:var(--accent);color:var(--on-accent);font-family:var(--f-display);
+  font-weight:700;font-size:28px;box-shadow:0 6px 18px rgba(2,8,20,.45)
+}
+.dp-ok:active,.dp-btn:active,.remote-back:active{transform:scale(.94)}
+.remote-back{
+  width:100%;height:60px;border:none;border-radius:var(--r-sm);cursor:pointer;
+  background:var(--surface-2);color:var(--text);font-family:var(--f-text);
+  font-size:26px;font-weight:500
+}
+.remote-back,.dp-ok,.dp-btn,.icon-btn{transition:transform .1s ease-out}
+
+/* ══ OVERLAY DE CONFIGURAÇÕES ══ */
+.overlay{
+  position:absolute;inset:0;background:var(--scrim);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;z-index:60
+}
+.modal{
+  width:820px;max-height:975px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--sh-2);backdrop-filter:blur(22px);
+  padding:30px 36px;display:flex;flex-direction:column;overflow:auto
+}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.modal-head h2{font-family:var(--f-display);font-weight:800;font-size:40px}
+.modal-section{margin-top:20px}
+.modal-section h3{font-family:var(--f-display);font-weight:700;font-size:26px;color:var(--text-2);margin-bottom:10px}
+.seg-label{font-size:22px;color:var(--text-2);margin:16px 0 8px;font-weight:500}
+.segmented{display:flex;gap:12px}
+.seg-btn{
+  height:58px;padding:0 28px;border-radius:var(--r-sm);border:1px solid var(--line);
+  background:var(--surface);font-size:26px;font-weight:500;color:var(--text-2);cursor:pointer
+}
+.seg-btn.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.keys-list{list-style:none;display:grid;gap:10px}
+.keys-list li{display:flex;align-items:center;gap:16px;font-size:24px;color:var(--text-2)}
+.about-text{font-size:25px;line-height:1.45;color:var(--text);max-width:70ch}
+.about-sub{margin-top:14px;font-size:24px;color:var(--text-2)}
+
+/* ══ TOAST ══ */
+.toast{
+  position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(14px);
+  background:var(--toast-bg);color:var(--toast-fg);font-size:26px;font-weight:500;
+  padding:16px 30px;border-radius:var(--r-sm);box-shadow:var(--sh-2);
+  opacity:0;transition:opacity .18s ease-out, transform .18s ease-out;z-index:80;
+  max-width:80%;text-align:center
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ══ MOVIMENTO COM RESTRIÇÃO ══
+   (o campo de estrelas respeita prefers-reduced-motion no app.js:
+   cintilação vira brilho fixo e não há estrela cadente) */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
