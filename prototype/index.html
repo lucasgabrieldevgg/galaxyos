@@ -39,7 +39,7 @@
           <circle cx="41.5" cy="17.5" r="3.2" fill="var(--accent)"/>
         </svg>
         <span class="brand-name">GalaxyOS</span>
-        <span class="chip chip-soft" data-i18n="versionChip">v0.2 · protótipo web</span>
+        <span class="chip chip-soft" data-i18n="versionChip">v0.3 · protótipo web</span>
       </div>
       <div class="topbar-right">
         <button class="chip chip-btn" id="langChip" data-focusable aria-label="Idioma / Language">
@@ -65,20 +65,30 @@
         <p class="clock-date" id="clockDate">—</p>
       </div>
 
-      <div class="netcard" aria-label="Status da rede">
-        <div class="netcard-head">
-          <svg class="i-wifi big" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9.5a14.5 14.5 0 0 1 19 0M5.5 13a10 10 0 0 1 13 0M8.7 16.4a5.5 5.5 0 0 1 6.6 0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="19.4" r="1.7" fill="currentColor"/></svg>
-          <h2 data-i18n="netTitle">Rede</h2>
-          <span class="netcard-badge"><span class="dot dot-ok"></span><span data-i18n="netStatus">Conectado · Internet OK</span></span>
+      <!-- card compacto: nome + status; detalhes ficam num submenu (OK) -->
+      <div class="netcard-wrap">
+        <div class="netcard" id="netcard" data-focusable data-activate role="button" tabindex="-1"
+             aria-expanded="false" aria-controls="netDetails" aria-label="Status da rede">
+          <div class="netcard-row">
+            <svg class="i-wifi big" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9.5a14.5 14.5 0 0 1 19 0M5.5 13a10 10 0 0 1 13 0M8.7 16.4a5.5 5.5 0 0 1 6.6 0" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="19.4" r="1.7" fill="currentColor"/></svg>
+            <div class="netcard-id">
+              <span class="netcard-name">GalaxyNet 5G</span>
+              <span class="netcard-badge"><span class="dot dot-ok"></span><span data-i18n="netStatus">Conectado · Internet OK</span></span>
+            </div>
+            <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <p class="netcard-more" data-i18n="netMore">OK · detalhes</p>
         </div>
-        <dl class="netcard-rows">
-          <div class="netcard-row"><dt data-i18n="netSignal">Sinal</dt><dd>
-            <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-            <span data-i18n="netSignalValue">Excelente</span></dd></div>
-          <div class="netcard-row"><dt data-i18n="netIp">Endereço IP</dt><dd class="mono">192.168.0.42</dd></div>
-          <div class="netcard-row"><dt data-i18n="netPing">Latência</dt><dd class="mono">12 ms</dd></div>
-        </dl>
-        <p class="netcard-foot">AOC 43S5155 · Roku TV · 1080p · Wi-Fi 5 GHz</p>
+        <div class="netcard-pop" id="netDetails" hidden>
+          <dl class="netcard-rows">
+            <div class="netcard-row"><dt data-i18n="netSignal">Sinal</dt><dd>
+              <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+              <span data-i18n="netSignalValue">Excelente</span></dd></div>
+            <div class="netcard-row"><dt data-i18n="netIp">Endereço IP</dt><dd class="mono">192.168.0.42</dd></div>
+            <div class="netcard-row"><dt data-i18n="netPing">Latência</dt><dd class="mono">12 ms</dd></div>
+          </dl>
+          <p class="netcard-foot">AOC 43S5155 · Roku TV · 1080p · Wi-Fi 5 GHz</p>
+        </div>
       </div>
     </section>
 
@@ -134,7 +144,7 @@
         </button>
 
         <button class="module" data-focusable data-module="settings">
-          <span class="module-badge badge-now" data-i18n="badgeNow">v0.2</span>
+          <span class="module-badge badge-now" data-i18n="badgeNow">v0.3</span>
           <svg class="module-icon" viewBox="0 0 48 48" aria-hidden="true">
             <circle cx="24" cy="24" r="6.5" fill="none" stroke="currentColor" stroke-width="2.6"/>
             <path d="M24 5v6M24 37v6M9.2 9.2l4.2 4.2M34.6 34.6l4.2 4.2M5 24h6M37 24h6M9.2 38.8l4.2-4.2M34.6 13.4l4.2-4.2" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
@@ -161,7 +171,7 @@
     <!-- ══ CONTROLE NA TELA (p/ celular) ══ -->
     <div class="remote" id="remote" hidden>
       <div class="remote-head"><span data-i18n="remoteTitle">Controle</span>
-        <button class="icon-btn" id="remoteClose" aria-label="Fechar controle">
+        <button class="icon-btn" id="remoteClose" data-focusable aria-label="Fechar controle">
           <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
         </button>
       </div>
@@ -177,10 +187,10 @@
 
     <!-- ══ CONFIGURAÇÕES ══ -->
     <div class="overlay" id="overlaySettings" hidden>
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <div class="drawer" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
         <div class="modal-head">
           <h2 id="settingsTitle" data-i18n="settings">Configurações</h2>
-          <button class="icon-btn" id="settingsClose" aria-label="Fechar">
+          <button class="icon-btn" id="settingsClose" data-focusable aria-label="Fechar">
             <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
           </button>
         </div>

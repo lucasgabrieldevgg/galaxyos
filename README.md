@@ -4,15 +4,15 @@ Protótipo e base de projeto para um **channel Roku** que funciona como ambiente
 
 Este repo reúne as três primeiras peças do plano:
 
-1. **`prototype/`** — a versão teste web da Home (v0.2), navegável por setas como um controle real, bilíngue PT/EN, estática (HTML/CSS/JS puro, sem build).
+1. **`prototype/`** — a versão teste web da Home (v0.3), navegável por setas como um controle real, bilíngue PT/EN, estática (HTML/CSS/JS puro, sem build).
 2. **`skills/`** — as 4 skills do autor (projects · design · security · theskill/craftsmanship) **adaptadas para a área Roku**, que passam a guiar o desenvolvimento do channel.
 3. **`docs/`** — a pesquisa verificada nas fontes oficiais da Roku (o que muda decisões de arquitetura) e os screenshots dos estados do protótipo.
 
 ---
 
-## O protótipo (v0.2 — Só Home)
+## O protótipo (v0.3 — Só Home)
 
-Visual **escuro "Deep Space"** — fundo padrão **Nebulosa** (nebulosas em movimento + ~210 estrelas cintilando em canvas + estrela cadente ocasional), variantes **Aurora** e **Limpo**, e o tema **claro minimal estilo Google TV** (v0.1) preservado — tudo em **Configurações → Aparência** · palco fixo **1920×1080** com moldura de TV · **foco = cursor** (setas navegam, Enter = OK, Backspace/Esc = Voltar) · relógio ao vivo com data por locale · card de status de rede · 8 atalhos · 4 módulos (Jogos, Web Hub e Connect como "Em breve"; Configurações funcional) · **controle na tela** (D-pad clicável, para testar no celular) · idioma, tema e fundo persistidos em `localStorage` · `prefers-reduced-motion` respeitado (estrelas fixas, sem estrela cadente).
+Visual **escuro "Deep Space"** — fundo padrão **Nebulosa** (nebulosas em movimento + ~210 estrelas cintilando em canvas + estrela cadente ocasional), variantes **Aurora** e **Limpo**, e o tema **claro minimal estilo Google TV** (v0.1) preservado — tudo em **Configurações → Aparência** · palco fixo **1920×1080** com moldura de TV · **foco = cursor** (setas navegam, Enter = OK, Backspace/Esc = Voltar) · relógio ao vivo com data por locale · **card de rede compacto** (nome + status; sinal/IP/latência num submenu que abre com OK) · 8 atalhos · 4 módulos (Jogos, Web Hub e Connect como "Em breve"; Configurações funcional) · **Configurações em drawer lateral** (desliza da direita, Home continua visível; fecha com ✕, Back ou clique fora) · **controle na tela** (D-pad clicável, para testar no celular) · idioma, tema e fundo persistidos em `localStorage` · `prefers-reduced-motion` respeitado (estrelas fixas, sem estrela cadente).
 
 ### Testar agora
 

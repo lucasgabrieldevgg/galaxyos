@@ -11,17 +11,18 @@
 
 const I18N = {
   pt: {
-    versionChip: 'v0.2 · protótipo web',
+    versionChip: 'v0.3 · protótipo web',
     greetingMorning: 'Bom dia,', greetingAfternoon: 'Boa tarde,', greetingEvening: 'Boa noite,',
     netTitle: 'Rede', netStatus: 'Conectado · Internet OK',
     netSignal: 'Sinal', netSignalValue: 'Excelente',
     netIp: 'Endereço IP', netPing: 'Latência',
+    netMore: 'OK · detalhes',
     shortcuts: 'Atalhos', modules: 'GalaxyOS',
     modGames: 'Jogos', modGamesDesc: 'Biblioteca, minigames e recordes.',
     modWebDesc: 'Conteúdo e serviços via GalaxyOS Hub.',
     modConnectDesc: 'PC na TV, celular no controle.',
     modSettings: 'Configurações', modSettingsDesc: 'Idioma, aparência e informações.',
-    badgeSoon: 'Em breve', badgeNow: 'v0.2',
+    badgeSoon: 'Em breve', badgeNow: 'v0.3',
     hintNav: 'Navegar', hintOk: 'OK', hintBack: 'Voltar',
     remoteToggle: 'Controle na tela', remoteTitle: 'Controle',
     settings: 'Configurações', settingsLang: 'Idioma',
@@ -43,17 +44,18 @@ const I18N = {
     locale: 'pt-BR'
   },
   en: {
-    versionChip: 'v0.2 · web prototype',
+    versionChip: 'v0.3 · web prototype',
     greetingMorning: 'Good morning,', greetingAfternoon: 'Good afternoon,', greetingEvening: 'Good evening,',
     netTitle: 'Network', netStatus: 'Connected · Internet OK',
     netSignal: 'Signal', netSignalValue: 'Excellent',
     netIp: 'IP address', netPing: 'Latency',
+    netMore: 'OK · details',
     shortcuts: 'Shortcuts', modules: 'GalaxyOS',
     modGames: 'Games', modGamesDesc: 'Library, mini-games and high scores.',
     modWebDesc: 'Content and services via the GalaxyOS Hub.',
     modConnectDesc: 'PC on the TV, phone as the remote.',
     modSettings: 'Settings', modSettingsDesc: 'Language, appearance and info.',
-    badgeSoon: 'Coming soon', badgeNow: 'v0.2',
+    badgeSoon: 'Coming soon', badgeNow: 'v0.3',
     hintNav: 'Navigate', hintOk: 'OK', hintBack: 'Back',
     remoteToggle: 'On-screen remote', remoteTitle: 'Remote',
     settings: 'Settings', settingsLang: 'Language',
@@ -92,6 +94,9 @@ const stage        = $('#stage');
 const remote       = $('#remote');
 const overlay      = $('#overlaySettings');
 const toastEl      = $('#toast');
+const netcard      = $('#netcard');
+const netPop       = $('#netDetails');
+const heroEl       = $('.hero');
 let toastTimer = null;
 
 function toast(msg) {
@@ -129,6 +134,7 @@ function setFocus(el, silent) {
   if (!el) return;
   el.classList.add('focused');
   el.focus({ preventScroll: true });
+  if (el !== netcard) closeNetcard();   /* submenu de rede fecha ao sair do card */
   if (!silent) blip(el);
 }
 
@@ -194,6 +200,8 @@ function moveFocus(dir) {
 function activate(el) {
   if (!el) return;
 
+  if (el.id === 'netcard')  { toggleNetcard(); return; }
+
   if (el.dataset.app)     { toast(t('toastApp')(el.dataset.app)); return; }
 
   if (el.dataset.module) {
@@ -245,9 +253,23 @@ function closeSettings() {
   setFocus(beforeOverlayFocus || $('#railShortcuts .tile'));
 }
 
+/* ── card de rede: detalhes num submenu (popover de vidro) ── */
+
+function toggleNetcard(force) {
+  const open = (force === undefined) ? netPop.hidden : force;
+  netPop.hidden = !open;
+  netcard.setAttribute('aria-expanded', open);
+  heroEl.classList.toggle('pop-open', open);
+}
+
+function closeNetcard() {
+  if (!netPop.hidden) toggleNetcard(false);
+}
+
 function back() {
   if (!remote.hidden)    { showRemote(false);  setFocus($('#remoteToggle')); return; }
   if (!overlay.hidden)   { closeSettings(); return; }
+  if (!netPop.hidden)    { closeNetcard(); return; }
   toast(t('toastHome'));
 }
 
@@ -434,11 +456,15 @@ document.addEventListener('keydown', (e) => {
   if (KEYMAP[e.key]) { e.preventDefault(); moveFocus(KEYMAP[e.key]); return; }
 
   if (e.key === 'Enter' || e.key === ' ') {
-    /* Enter num botão nativo dispara click — evita duplicar */
-    if (e.key === ' ' ) e.preventDefault();
+    /* Enter num botão nativo dispara click — evita duplicar;
+       elementos com data-activate (card de rede) ativam aqui */
+    if (e.key === ' ') e.preventDefault();
     const el = $('.focused');
-    if (el && !el.matches('button')) return;
-    if (el) { e.preventDefault(); activate(el); }
+    if (!el) return;
+    if (el.matches('button') || el.hasAttribute('data-activate')) {
+      e.preventDefault();
+      activate(el);
+    }
     return;
   }
 
@@ -451,6 +477,11 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('click', (e) => {
   const el = e.target.closest('[data-focusable]');
   if (el) { setFocus(el, true); activate(el); }
+});
+
+/* clique no scrim do drawer também fecha as configurações */
+overlay.addEventListener('click', (e) => {
+  if (e.target === overlay) closeSettings();
 });
 
 /* controle na tela: mesmos eventos */
