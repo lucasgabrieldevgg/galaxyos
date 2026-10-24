@@ -16,6 +16,8 @@ Visual **escuro "Deep Space"** — fundo padrão **Nebulosa** (nebulosas em movi
 
 ### Testar agora
 
+- **🚀 Ao vivo no GitHub Pages**: **https://lucasgabrieldevgg.github.io/galaxyos/**
+- **Repo**: https://github.com/lucasgabrieldevgg/galaxyos
 - **Direto do disco**: abra `prototype/index.html` em qualquer navegador.
 - **Servindo** (recomendado, fontes via Google Fonts): `cd prototype && python3 -m http.server 8901` → `http://localhost:8901`.
 
